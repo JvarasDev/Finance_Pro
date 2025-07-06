@@ -4,8 +4,10 @@ import { verifyJwt } from '@/lib/auth';
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
+  const { id } = await context.params;
+  
   const auth = req.headers.get('authorization');
   if (!auth) return NextResponse.json({ error: 'No autorizado.' }, { status: 401 });
   
@@ -19,7 +21,7 @@ export async function DELETE(
     // Verificar que el ingreso pertenece al usuario
     const income = await prisma.Income.findFirst({
       where: {
-        id: params.id,
+        id: id,
         userId: payload.id as string
       }
     });
@@ -30,7 +32,7 @@ export async function DELETE(
 
     // Eliminar el ingreso
     await prisma.Income.delete({
-      where: { id: params.id }
+      where: { id: id }
     });
 
     return NextResponse.json({ message: 'Ingreso eliminado exitosamente.' });
