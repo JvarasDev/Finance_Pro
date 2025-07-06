@@ -16,3 +16,5 @@ if (process.env.VERCEL) {
     initializeDatabase().catch(console.error);
   });
 }
+
+console.log("DATABASE_URL en Vercel:", process.env.DATABASE_URL);
