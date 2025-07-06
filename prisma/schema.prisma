@@ -1,0 +1,165 @@
+// Esquema completo de Prisma para plataforma financiera chilena
+// Compatible con SQLite y Vercel
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Usuario principal
+model User {
+  id                String   @id @default(cuid())
+  email             String   @unique
+  name              String
+  password          String
+  plan              Plan     @default(FREE)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relaciones
+  incomes           Income[]
+  expenses          Expense[]
+  goals             Goal[]
+  recommendations   Recommendation[]
+  courses           UserCourse[]
+  notifications     Notification[]
+}
+
+// Ingresos del usuario
+model Income {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Float
+  category    String
+  description String?
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Gastos del usuario
+model Expense {
+  id          String   @id @default(cuid())
+  userId      String
+  amount      Float
+  category    String
+  description String?
+  date        DateTime
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Metas financieras
+model Goal {
+  id          String   @id @default(cuid())
+  userId      String
+  name        String
+  targetAmount Float
+  currentAmount Float  @default(0)
+  deadline    DateTime?
+  icon        String
+  color       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Recomendaciones personalizadas
+model Recommendation {
+  id          String   @id @default(cuid())
+  userId      String
+  type        RecommendationType
+  title       String
+  description String
+  impact      String
+  priority    Priority
+  applied     Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Cursos de educación financiera
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  duration    String
+  level       CourseLevel
+  icon        String
+  color       String
+  content     String
+  createdAt   DateTime @default(now())
+  
+  userCourses UserCourse[]
+}
+
+// Progreso de cursos del usuario
+model UserCourse {
+  id        String   @id @default(cuid())
+  userId    String
+  courseId  String
+  progress  Int      @default(0) // 0-100
+  completed Boolean  @default(false)
+  startedAt DateTime @default(now())
+  completedAt DateTime?
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, courseId])
+}
+
+// Notificaciones del usuario
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Enums
+enum Plan {
+  FREE
+  PREMIUM
+}
+
+enum RecommendationType {
+  SAVING
+  INVESTMENT
+  BUDGET
+  EDUCATION
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+enum CourseLevel {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum NotificationType {
+  INFO
+  WARNING
+  SUCCESS
+  ERROR
+}
