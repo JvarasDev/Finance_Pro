@@ -31,26 +31,26 @@ export async function POST(request: Request) {
     advice: CONSEJOS[categoria as keyof typeof CONSEJOS] || ''
   }));
 
-  // Guardar en la base de datos
-  const userIncome = await prisma.userIncome.create({
+  // Guardar en la base de datos usando el modelo income correcto
+  const userIncome = await prisma.income.create({
     data: {
-      income,
-      month,
-      year,
-      recommendations: {
-        create: recomendaciones
-      }
-    },
-    include: { recommendations: true }
+      amount: income,
+      category: 'SALARIO', // Categoría por defecto
+      description: `Ingreso de ${month}/${year}`,
+      date: new Date(year, parseInt(month) - 1, 1), // Primer día del mes
+      userId: 'temp-user-id' // Necesitarás obtener el userId real del token
+    }
   });
 
-  return NextResponse.json(userIncome);
+  return NextResponse.json({
+    income: userIncome,
+    recommendations: recomendaciones
+  });
 }
 
 export async function GET() {
-  // Devuelve todos los ingresos y recomendaciones
-  const data = await prisma.userIncome.findMany({
-    include: { recommendations: true },
+  // Devuelve todos los ingresos
+  const data = await prisma.income.findMany({
     orderBy: { createdAt: 'desc' }
   });
   return NextResponse.json(data);
