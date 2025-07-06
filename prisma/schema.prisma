@@ -1,12 +1,12 @@
 // Esquema completo de Prisma para plataforma financiera chilena
-// Compatible con SQLite y Vercel
+// Compatible con PostgreSQL y Supabase
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
